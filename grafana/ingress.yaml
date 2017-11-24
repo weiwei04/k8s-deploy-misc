@@ -1,0 +1,15 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  labels:
+    k8s-app: grafana
+  name: grafana
+spec:
+  rules:
+  - host: grafana.k8s-demo.qiniu.io
+    http:
+      paths:
+      - backend:
+          serviceName: grafana
+          servicePort: 3000
+        path: /

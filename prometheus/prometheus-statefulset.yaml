@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  labels:
+    app: prometheus
+spec:
+  ports:
+  - port: 9090
+  clusterIP: None
+  selector:
+    app: prometheus
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: prometheus # has to match .spec.template.metadata.labels
+  serviceName: "prometheus"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: prometheus # has to match .spec.selector.matchLabels
+    spec:
+      serviceAccountName: "prometheus"
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: prometheus
+        image: prom/prometheus:v2.0.0-rc.1
+        args:
+        - --config.file=/etc/prometheus/config/prometheus.yaml
+        - --web.enable-admin-api
+        - --web.enable-lifecycle
+        ports:
+        - containerPort: 9090
+        volumeMounts:
+        - name: config
+          mountPath: /etc/prometheus/config
+          readOnly: true
+        - name: data
+          mountPath: /var/prometheus/data
+          readOnly: false
+      volumes:
+      - configMap:
+          name: prometheus-config
+        name: config
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: standard
+      resources:
+        requests:
+          storage: 10Gi
