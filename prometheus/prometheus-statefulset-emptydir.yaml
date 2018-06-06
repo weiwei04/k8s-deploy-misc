@@ -48,12 +48,5 @@ spec:
       - configMap:
           name: prometheus-config
         name: config
-  volumeClaimTemplates:
-  - metadata:
-      name: data
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      storageClassName: standard
-      resources:
-        requests:
-          storage: 10Gi
+      - emptyDir: {}
+        name: data
